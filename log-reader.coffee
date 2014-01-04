@@ -1,12 +1,14 @@
-# ##Dependencies
-convict = require "convict"
-util = require 'util'
-assert = require 'cassert'
-Tail = require('tail').Tail
-Q = require 'q'
-assert = require 'cassert'
-
 module.exports = (env) ->
+  # ##Dependencies
+  # * from node.js
+  util = require 'util'
+  
+  # * pimatic imports.
+  convict = env.require "convict"
+  Q = env.require 'q'
+  assert = env.require 'cassert'
+
+  Tail = require('tail').Tail
 
   # ##The LogReaderPlugin
   class LogReaderPlugin extends env.plugins.Plugin

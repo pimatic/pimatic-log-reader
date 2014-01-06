@@ -1,4 +1,5 @@
 module.exports = (env) ->
+
   # ##Dependencies
   # * from node.js
   util = require 'util'
@@ -14,6 +15,7 @@ module.exports = (env) ->
   class LogReaderPlugin extends env.plugins.Plugin
 
     init: (app, @framework, @config) ->
+      @framework.ruleManager.addPredicateProvider new LogWatcherPredicateProvider(@framework)
 
     createDevice: (config) ->
       switch config.class
@@ -28,9 +30,8 @@ module.exports = (env) ->
 
   plugin = new LogReaderPlugin
 
-  # ##LogWatcher Sensor
+    # ##LogWatcher Sensor
   class LogWatcher extends env.devices.Sensor
-    listener: []
 
     constructor: (@config) ->
       @id = config.id
@@ -62,10 +63,6 @@ module.exports = (env) ->
             # and emit the event.
             @states[state] = line[state]
             @emit state, line[state]
-
-        for i, listener of @listener
-          if line.match is listener.match
-            listener.callback 'event'
         return
 
 
@@ -77,36 +74,57 @@ module.exports = (env) ->
         return Q.fcall => @states[name]
       throw new Error("Illegal sensor value name")
 
+
+  class LogWatcherPredicateProvider extends env.predicates.PredicateProvider
+    listener: []
+
+    constructor: (@framework) ->
+
     isTrue: (id, predicate) ->
       return Q.fcall -> false
 
     # Removes the notification for an with `notifyWhen` registered predicate. 
     cancelNotify: (id) ->
-      if @listener[id]?
+      l = listener[id]
+      if l?
+        l.destroy()
         delete @listener[id]
 
-    _getLineWithPredicate: (predicate) ->
-      for line in @config.lines
+    canDecide: (predicate) ->
+      info = @_findDevice predicate
+      return if info? then 'event' else no 
+
+    notifyWhen: (id, predicate, callback) ->
+      info = @_findDevice predicate
+      unless info?
+        throw new Error 'Can not decide the predicate!'
+      device = info.device
+
+      deviceListener = (line, data) =>
+        if line.match is info.line.match
+          callback 'event'
+
+      device.addListener 'match', deviceListener
+      @listener[id] =
+        destroy: () => device.removeListener 'match', deviceListener
+
+
+    _findDevice: (predicate) ->
+      for id, d of @framework.devices
+        if d instanceof LogWatcher
+          line = @_getLineWithPredicate d.config, predicate
+          if line? then return {device: d, line: line}
+      return null
+
+    _getLineWithPredicate: (config, predicate) ->
+      for line in config.lines
         if line.predicate? and predicate.match(new RegExp(line.predicate))
           return line
       return null
 
-    canDecide: (predicate) ->
-      line = @_getLineWithPredicate predicate
-      return if line? then 'event' else no 
-
-    notifyWhen: (id, predicate, callback) ->
-      line = @_getLineWithPredicate predicate
-      unless line?
-        throw new Error 'Can not decide the predicate!'
-
-      @listener[id] =
-        match: line.match
-        callback: callback
-
-
 
   # For testing...
   @LogReaderPlugin = LogReaderPlugin
+  @LogWatcherPredicateProvider = LogWatcherPredicateProvider
   # Export the plugin.
   return plugin

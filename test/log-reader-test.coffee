@@ -19,13 +19,17 @@ module.exports = (env) ->
 
     plugin = logReaderWrapper env
 
-
     sensor = null
+    provider = null
 
     describe 'LogReaderPlugin', ->
 
       appDummy = {}
-      frameworkDummy = {}
+      frameworkDummy =
+        ruleManager: 
+          addPredicateProvider: (_provider)->
+            provider = _provider
+        devices: {}
 
       describe '#init()', ->
 
@@ -43,7 +47,7 @@ module.exports = (env) ->
             assert s?
             assert s.id?
             assert s.name?
-            sensor = s
+            frameworkDummy.devices["test-sensor"] = sensor = s
 
           sensorConfig =
             id: "test-sensor"
@@ -64,12 +68,16 @@ module.exports = (env) ->
               }
             ]
 
+
+
+
           res = plugin.createDevice sensorConfig
           assert res is true
           assert tailDummy.file is "/var/log/test"
           assert sensor?
 
     describe 'LogWatcher', ->
+
 
       describe '#getSensorValuesNames()', ->  
 
@@ -101,25 +109,27 @@ module.exports = (env) ->
             finish()
           ).catch(finish).done()
 
+    describe 'LogWatcherPredicateProvider', ->
+
       describe '#canDecide()', ->
 
         it 'should decide: test predicate 1', ->
-          result = sensor.canDecide 'test predicate 1'
+          result = provider.canDecide 'test predicate 1'
           assert result is 'event'
 
         it 'should decide: test predicate 2', ->
-          result = sensor.canDecide 'test predicate 2'
+          result = provider.canDecide 'test predicate 2'
           assert result is 'event'
 
         it 'should not decide: test predicate 3', ->
-          result = sensor.canDecide 'test predicate 3'
+          result = provider.canDecide 'test predicate 3'
           assert result is no
 
       describe '#notifyWhen()', ->
 
         it 'should notify: test predicate 1', (finish) ->
 
-          sensor.notifyWhen 't1', 'test predicate 1', ->
+          provider.notifyWhen 't1', 'test predicate 1', ->
             finish()
           
           tailDummy.emit 'line', 'test 1'

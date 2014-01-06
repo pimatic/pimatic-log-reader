@@ -1,5 +1,5 @@
 { "name": "pimatic-log-reader",
-  "description": "log reader plugin for pimatic",
+  "description": "Provides predicates for log entries in log files of other programs.",
   "author": "Oliver Schneider <oliverschneider89+sweetpi@gmail.com> (http://sweetpi.de)",
   "main": "log-reader.coffee",
   "files": [

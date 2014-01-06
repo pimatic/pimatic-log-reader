@@ -39,7 +39,7 @@ module.exports = (env) ->
 
         it 'should create a sensor', ->
 
-          frameworkDummy.registerSensor = (s) ->
+          frameworkDummy.registerDevice = (s) ->
             assert s?
             assert s.id?
             assert s.name?
@@ -64,7 +64,7 @@ module.exports = (env) ->
               }
             ]
 
-          res = plugin.createSensor sensorConfig
+          res = plugin.createDevice sensorConfig
           assert res is true
           assert tailDummy.file is "/var/log/test"
           assert sensor?

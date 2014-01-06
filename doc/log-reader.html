@@ -13,18 +13,18 @@
 
     <span class="nv">init: </span><span class="nf">(app, @framework, @config) -&gt;</span>
 
-    <span class="nv">createSensor: </span><span class="nf">(config) -&gt;</span>
+    <span class="nv">createDevice: </span><span class="nf">(config) -&gt;</span>
       <span class="k">switch</span> <span class="nx">config</span><span class="p">.</span><span class="nx">class</span>
         <span class="k">when</span> <span class="s">&#39;LogWatcher&#39;</span>
           <span class="nx">assert</span> <span class="nx">config</span><span class="p">.</span><span class="nx">name</span><span class="o">?</span>
           <span class="nx">assert</span> <span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="o">?</span>
           <span class="nv">watcher = </span><span class="k">new</span> <span class="nx">LogWatcher</span><span class="p">(</span><span class="nx">config</span><span class="p">)</span>
-          <span class="nx">@framework</span><span class="p">.</span><span class="nx">registerSensor</span> <span class="nx">watcher</span>
+          <span class="nx">@framework</span><span class="p">.</span><span class="nx">registerDevice</span> <span class="nx">watcher</span>
           <span class="k">return</span> <span class="kc">true</span>
         <span class="k">else</span>
           <span class="k">return</span> <span class="kc">false</span>
 
-  <span class="nv">plugin = </span><span class="k">new</span> <span class="nx">LogReaderPlugin</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="logwatcher-sensor">LogWatcher Sensor</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper">  <span class="k">class</span> <span class="nx">LogWatcher</span> <span class="k">extends</span> <span class="nx">env</span><span class="p">.</span><span class="nx">sensors</span><span class="p">.</span><span class="nx">Sensor</span>
+  <span class="nv">plugin = </span><span class="k">new</span> <span class="nx">LogReaderPlugin</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="logwatcher-sensor">LogWatcher Sensor</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper">  <span class="k">class</span> <span class="nx">LogWatcher</span> <span class="k">extends</span> <span class="nx">env</span><span class="p">.</span><span class="nx">devices</span><span class="p">.</span><span class="nx">Sensor</span>
     <span class="nv">listener: </span><span class="p">[]</span>
 
     <span class="nv">constructor: </span><span class="nf">(@config) -&gt;</span>

@@ -13,7 +13,7 @@ Add the plugin to to plugins-Array in the config.json file:
       "plugin": "log-reader"
     }
 
-Then add a sensor for your log-entries to the sensors section:
+Then add a sensor for your log-entries to the devices section:
 
     {
       "id": "some-id",

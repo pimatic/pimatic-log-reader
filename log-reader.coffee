@@ -15,13 +15,13 @@ module.exports = (env) ->
 
     init: (app, @framework, @config) ->
 
-    createSensor: (config) ->
+    createDevice: (config) ->
       switch config.class
         when 'LogWatcher'
           assert config.name?
           assert config.id?
           watcher = new LogWatcher(config)
-          @framework.registerSensor watcher
+          @framework.registerDevice watcher
           return true
         else
           return false
@@ -29,7 +29,7 @@ module.exports = (env) ->
   plugin = new LogReaderPlugin
 
   # ##LogWatcher Sensor
-  class LogWatcher extends env.sensors.Sensor
+  class LogWatcher extends env.devices.Sensor
     listener: []
 
     constructor: (@config) ->

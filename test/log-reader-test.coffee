@@ -1,7 +1,9 @@
 module.exports = (env) ->
 
-  assert = env.require "cassert"
+  cassert = env.require "cassert"
   proxyquire = env.require 'proxyquire'
+
+  assert = require 'assert'
 
   describe "pimatic-log-reader", ->
 
@@ -44,9 +46,9 @@ module.exports = (env) ->
         it 'should create a sensor', ->
 
           frameworkDummy.registerDevice = (s) ->
-            assert s?
-            assert s.id?
-            assert s.name?
+            cassert s?
+            cassert s.id?
+            cassert s.name?
             frameworkDummy.devices["test-sensor"] = sensor = s
 
           sensorConfig =
@@ -54,17 +56,17 @@ module.exports = (env) ->
             name: "a test sensor"
             class: "LogWatcher"
             file: "/var/log/test"
-            states: ["some-state"]
+            properties: ["someProp"]
             lines: [
               {
                 match: "test 1"
                 predicate: "test predicate 1"
-                "some-state": "1"
+                "someProp": "1"
               }
               {
                 match: "test 2"
                 predicate: "test predicate 2"
-                "some-state": "2"
+                "someProp": "2"
               }
             ]
 
@@ -72,40 +74,43 @@ module.exports = (env) ->
 
 
           res = plugin.createDevice sensorConfig
-          assert res is true
-          assert tailDummy.file is "/var/log/test"
-          assert sensor?
+          cassert res is true
+          cassert tailDummy.file is "/var/log/test"
+          cassert sensor?
 
     describe 'LogWatcher', ->
 
 
-      describe '#getSensorValuesNames()', ->  
+      describe '#properties', ->  
 
-        it 'should return the defined states', ->
-          names = sensor.getSensorValuesNames()
-          assert names?
-          assert names.length is 1
-          assert names[0] is 'some-state'
+        it 'should have the property', ->
+          prop = sensor.properties.someProp
+          cassert prop?
+          cassert Array.isArray prop.type
+          assert.deepEqual prop.type, ["1", "2"]
 
-      describe '#getSensorValue()', ->
+        it "should have the getter function", ->
+          cassert typeof sensor.getSomeProp is "function"
+
+      describe '#getSomeProp()', ->
 
         it 'should return unknown', (finish) ->
-          sensor.getSensorValue('some-state').then( (value) ->
-            assert value is 'unknown'
+          sensor.getSomeProp().then( (value) ->
+            assert.equal value, 'unknown'
             finish()
           ).catch(finish).done()
 
         it 'should react to log: test 1', (finish) ->
           tailDummy.emit 'line', 'test 1'
-          value = sensor.getSensorValue('some-state').then( (value) ->
-            assert value is '1'
+          sensor.getSomeProp().then( (value) ->
+            assert.equal value, '1'
             finish()
           ).catch(finish).done()
 
         it 'should react to log: test 2', (finish) ->
           tailDummy.emit 'line', 'test 2'
-          value = sensor.getSensorValue('some-state').then( (value) ->
-            assert value is '2'
+          sensor.getSomeProp().then( (value) ->
+            assert.equal value, '2'
             finish()
           ).catch(finish).done()
 
@@ -115,15 +120,15 @@ module.exports = (env) ->
 
         it 'should decide: test predicate 1', ->
           result = provider.canDecide 'test predicate 1'
-          assert result is 'event'
+          cassert result is 'event'
 
         it 'should decide: test predicate 2', ->
           result = provider.canDecide 'test predicate 2'
-          assert result is 'event'
+          cassert result is 'event'
 
         it 'should not decide: test predicate 3', ->
           result = provider.canDecide 'test predicate 3'
-          assert result is no
+          cassert result is no
 
       describe '#notifyWhen()', ->
 

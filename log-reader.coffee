@@ -38,22 +38,22 @@ module.exports = (env) ->
       @id = config.id
       @name = config.name
       @tail = new Tail(config.file)
-      @propertyValue = {}
+      @attributeValue = {}
 
-      @properties = {}
-      # initialise all properties
-      for name in @config.properties
+      @attributes = {}
+      # initialise all attributes
+      for name in @config.attributes
         # that the value to 'unknown'
-        @propertyValue[name] = 'unknown'
+        @attributeValue[name] = 'unknown'
         # Get all possible values
         possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
-        # Add property definition
-        @properties[name] =
-          description: "property #{name}"
+        # Add attribute definition
+        @attributes[name] =
+          description: "attribute #{name}"
           type: possibleValues
-        # Create a getter for this property
+        # Create a getter for this attribute
         getter = 'get' + name[0].toUpperCase() + name.slice(1)
-        @[getter] = () => Q @propertyValue[name]
+        @[getter] = () => Q @attributeValue[name]
 
       # On ervery new line in the log file
       @tail.on 'line', (data) =>
@@ -68,12 +68,12 @@ module.exports = (env) ->
       # When a match event occures
       @on 'match', (line, data) =>
         # then check for each prop in the config
-        for prop in @config.properties
+        for prop in @config.attributes
           # if the prop is registed for the log line.
           if prop of line
             # When a value for the prop is define, then set the value
             # and emit the event.
-            @propertyValue[prop] = line[prop]
+            @attributeValue[prop] = line[prop]
             @emit prop, line[prop]
         return
       super()

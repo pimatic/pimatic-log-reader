@@ -56,7 +56,7 @@ module.exports = (env) ->
             name: "a test sensor"
             class: "LogWatcher"
             file: "/var/log/test"
-            properties: ["someProp"]
+            attributes: ["someProp"]
             lines: [
               {
                 match: "test 1"
@@ -81,10 +81,10 @@ module.exports = (env) ->
     describe 'LogWatcher', ->
 
 
-      describe '#properties', ->  
+      describe '#attributes', ->  
 
-        it 'should have the property', ->
-          prop = sensor.properties.someProp
+        it 'should have the attribute', ->
+          prop = sensor.attributes.someProp
           cassert prop?
           cassert Array.isArray prop.type
           assert.deepEqual prop.type, ["1", "2"]

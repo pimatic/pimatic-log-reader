@@ -1,25 +1,18 @@
 module.exports = (env) ->
 
   cassert = env.require "cassert"
-  proxyquire = env.require 'proxyquire'
 
   assert = require 'assert'
 
   describe "pimatic-log-reader", ->
 
     tailDummy = null
+    env.Tail = (
+      class TailDummy extends require('events').EventEmitter
+        constructor: (@file) -> tailDummy = this
+    )
 
-    class TailDummy extends require('events').EventEmitter
-        
-      constructor: (@file) ->
-        tailDummy = this
-
-
-    logReaderWrapper = proxyquire 'pimatic-log-reader',
-      tail: 
-        Tail: TailDummy
-
-    plugin = logReaderWrapper env
+    plugin = require('pimatic-log-reader') env
 
     sensor = null
     provider = null

@@ -10,7 +10,7 @@ module.exports = (env) ->
   assert = env.require 'cassert'
   _ = env.require 'lodash'
 
-  Tail = require('tail').Tail
+  Tail = env.Tail or require('tail').Tail
 
   # ##The LogReaderPlugin
   class LogReaderPlugin extends env.plugins.Plugin

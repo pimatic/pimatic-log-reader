@@ -19,19 +19,19 @@ So you can trigger rules besed on log entries. See the example-Section for more 
   "name": "some name",
   "class": "LogWatcher",
   "file": "/var/log/some-logfile",
-  "states": [
-    "some-state"
+  "properties": [
+    "some-prop"
   ],
   "lines": [
     {
       "match": "some log entry 1",
       "predicate": "entry 1",
-      "some-state": "1" 
+      "some-prop": "1" 
     },
     {
       "match": "some log entry 2",
       "predicate": "entry 2",
-      "some-state": "2"
+      "some-prop": "2"
     }
   ]
 }
@@ -51,7 +51,7 @@ log is written to "/var/log/gmediarender". Then define following sensor:</p>
   "name": "Music Player",
   "class": "LogWatcher",
   "file": "/var/log/gmediarender",
-  "states": [
+  "properties": [
     "music-state"
   ],
   "lines": [
@@ -85,7 +85,7 @@ if music stops then turn the speacker off
   "name": "Printer Log",
   "class": "LogWatcher",
   "file": "/var/log/cups/page_log",
-  "states": [],
+  "properties": [],
   "lines": [
     {
       "match": "psc_1100",

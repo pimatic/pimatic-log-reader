@@ -43,17 +43,18 @@ module.exports = (env) ->
       @attributes = {}
       # initialise all attributes
       for name in @config.attributes
-        # that the value to 'unknown'
-        @attributeValue[name] = 'unknown'
-        # Get all possible values
-        possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
-        # Add attribute definition
-        @attributes[name] =
-          description: "attribute #{name}"
-          type: possibleValues
-        # Create a getter for this attribute
-        getter = 'get' + name[0].toUpperCase() + name.slice(1)
-        @[getter] = () => Q @attributeValue[name]
+        do (name) =>
+          # that the value to 'unknown'
+          @attributeValue[name] = 'unknown'
+          # Get all possible values
+          possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
+          # Add attribute definition
+          @attributes[name] =
+            description: "attribute #{name}"
+            type: possibleValues
+          # Create a getter for this attribute
+          getter = 'get' + name[0].toUpperCase() + name.slice(1)
+          @[getter] = () => Q @attributeValue[name]
 
       # On ervery new line in the log file
       @tail.on 'line', (data) =>

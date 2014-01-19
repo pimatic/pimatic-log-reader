@@ -8,8 +8,9 @@ module.exports = (env) ->
   convict = env.require "convict"
   Q = env.require 'q'
   assert = env.require 'cassert'
+  _ = env.require 'lodash'
 
-  Tail = require('tail').Tail
+  Tail = env.Tail or require('tail').Tail
 
   # ##The LogReaderPlugin
   class LogReaderPlugin extends env.plugins.Plugin
@@ -37,11 +38,23 @@ module.exports = (env) ->
       @id = config.id
       @name = config.name
       @tail = new Tail(config.file)
-      @states = {}
+      @attributeValue = {}
 
-      # initialise all states with unknown
-      for name in @config.states
-        @states[name] = 'unknown'
+      @attributes = {}
+      # initialise all attributes
+      for name in @config.attributes
+        do (name) =>
+          # that the value to 'unknown'
+          @attributeValue[name] = 'unknown'
+          # Get all possible values
+          possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
+          # Add attribute definition
+          @attributes[name] =
+            description: "attribute #{name}"
+            type: possibleValues
+          # Create a getter for this attribute
+          getter = 'get' + name[0].toUpperCase() + name.slice(1)
+          @[getter] = () => Q @attributeValue[name]
 
       # On ervery new line in the log file
       @tail.on 'line', (data) =>
@@ -55,24 +68,16 @@ module.exports = (env) ->
 
       # When a match event occures
       @on 'match', (line, data) =>
-        # then check for each state in the config
-        for state in @config.states
-          # if the state is registed for the log line.
-          if state of line
-            # When a value for the state is define, then set the value
+        # then check for each prop in the config
+        for prop in @config.attributes
+          # if the prop is registed for the log line.
+          if prop of line
+            # When a value for the prop is define, then set the value
             # and emit the event.
-            @states[state] = line[state]
-            @emit state, line[state]
+            @attributeValue[prop] = line[prop]
+            @emit prop, line[prop]
         return
-
-
-    getSensorValuesNames: ->
-      return @config.states
-
-    getSensorValue: (name)->
-      if name in @config.states
-        return Q.fcall => @states[name]
-      throw new Error("Illegal sensor value name")
+      super()
 
 
   class LogWatcherPredicateProvider extends env.predicates.PredicateProvider
@@ -81,7 +86,7 @@ module.exports = (env) ->
     constructor: (@framework) ->
 
     isTrue: (id, predicate) ->
-      return Q.fcall -> false
+      return Q false
 
     # Removes the notification for an with `notifyWhen` registered predicate. 
     cancelNotify: (id) ->

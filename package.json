@@ -6,7 +6,7 @@
     "log-reader.coffee",
     "README.md"
   ],
-  "version": "0.5.0",
+  "version": "0.5.1",
   "homepage": "http://github.com/pimatic/pimatic",
   "repository": {
     "type": "git",

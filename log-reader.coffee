@@ -9,7 +9,7 @@ module.exports = (env) ->
   Q = env.require 'q'
   assert = env.require 'cassert'
   _ = env.require 'lodash'
-
+  M = env.matcher
   Tail = env.Tail or require('tail').Tail
 
   # ##The LogReaderPlugin
@@ -95,12 +95,12 @@ module.exports = (env) ->
         l.destroy()
         delete @listener[id]
 
-    canDecide: (predicate) ->
-      info = @_findDevice predicate
+    canDecide: (predicate, context) ->
+      info = @_findDevice predicate, context
       return if info? then 'event' else no 
 
-    notifyWhen: (id, predicate, callback) ->
-      info = @_findDevice predicate
+    notifyWhen: (id, predicate, callback, context) ->
+      info = @_findDevice predicate, context
       unless info?
         throw new Error 'Can not decide the predicate!'
       device = info.device
@@ -114,17 +114,22 @@ module.exports = (env) ->
         destroy: () => device.removeListener 'match', deviceListener
 
 
-    _findDevice: (predicate) ->
+    _findDevice: (predicate, context) ->
       for id, d of @framework.devices
         if d instanceof LogWatcher
-          line = @_getLineWithPredicate d.config, predicate
+          line = @_getLineWithPredicate d.config, predicate, context
           if line? then return {device: d, line: line}
       return null
 
-    _getLineWithPredicate: (config, predicate) ->
+    _getLineWithPredicate: (config, predicate, context) ->
       for line in config.lines
-        if line.predicate? and predicate.match(new RegExp(line.predicate))
-          return line
+        #add autocomplete:
+        
+        if line.predicate? 
+          doesMatch = no
+          M(predicate, context).match(line.predicate).onEnd( => doesMatch = yes)
+          if doesMatch
+            return line
       return null
 
 

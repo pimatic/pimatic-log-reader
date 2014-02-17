@@ -20,19 +20,19 @@ Then add a sensor for your log-entries to the devices section:
       "name": "some name",
       "class": "LogWatcher",
       "file": "/var/log/some-logfile",
-      "properties": [
-        "some-prop"
+      "attributes": [
+        "someAttr"
       ],
       "lines": [
         {
           "match": "some log entry 1",
           "predicate": "entry 1",
-          "some-prop": "1" 
+          "someAttr": "1" 
         },
         {
           "match": "some log entry 2",
           "predicate": "entry 2",
-          "some-prop": "2"
+          "someAttr": "2"
         }
       ]
     }
@@ -53,7 +53,7 @@ log is written to "/var/log/gmediarender". Then define following sensor:
       "name": "Music Player",
       "class": "LogWatcher",
       "file": "/var/log/gmediarender",
-      "properties": [
+      "attributes": [
         "music-state"
       ],
       "lines": [
@@ -85,7 +85,7 @@ Define the following sensor:
       "name": "Printer Log",
       "class": "LogWatcher",
       "file": "/var/log/cups/page_log",
-      "properties": [],
+      "attributes": [],
       "lines": [
         {
           "match": "psc_1100",

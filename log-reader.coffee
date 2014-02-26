@@ -90,10 +90,12 @@ module.exports = (env) ->
 
     # Removes the notification for an with `notifyWhen` registered predicate. 
     cancelNotify: (id) ->
-      l = listener[id]
+      l = @listener[id]
       if l?
         l.destroy()
         delete @listener[id]
+      else
+        env.logger.error "Could not find listener to cancel"
 
     canDecide: (predicate, context) ->
       info = @_findDevice predicate, context

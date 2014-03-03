@@ -6,15 +6,15 @@ module.exports = (env) ->
 
   describe "pimatic-log-reader", ->
 
-    tailDummy = null
     env.Tail = (
       class TailDummy extends require('events').EventEmitter
-        constructor: (@file) -> tailDummy = this
+        constructor: (@file) -> 
     )
 
     plugin = require('pimatic-log-reader') env
 
     sensor = null
+    sensor2 = null
     provider = null
 
     describe 'LogReaderPlugin', ->
@@ -36,7 +36,7 @@ module.exports = (env) ->
 
       describe '#createSensor()', ->
 
-        it 'should create a sensor', ->
+        it 'should create a state sensor', ->
 
           frameworkDummy.registerDevice = (s) ->
             cassert s?
@@ -63,20 +63,49 @@ module.exports = (env) ->
               }
             ]
 
+          res = plugin.createDevice sensorConfig
+          cassert res is true
+          cassert sensor.tail.file is "/var/log/test"
+          cassert sensor?
 
+        it 'should create a numeric sensor', ->
 
+          frameworkDummy.registerDevice = (s) ->
+            cassert s?
+            cassert s.id?
+            cassert s.name?
+            cassert s.attributes.temperature?
+            cassert s.attributes.temperature.type is Number
+            frameworkDummy.devices["numeric-test-sensor"] = sensor2 = s
+
+          sensorConfig =
+            id: "numeric-test-sensor"
+            name: "a temperature test sensor"
+            class: "LogWatcher"
+            file: "/var/log/temperature"
+            attributes: [
+              {
+                name: "temperature"
+                type: "number"
+              }
+            ]
+            lines: [
+              {
+                match: "temperature: (.+)"
+                temperature: "$1"
+              }
+            ]
 
           res = plugin.createDevice sensorConfig
           cassert res is true
-          cassert tailDummy.file is "/var/log/test"
-          cassert sensor?
+          cassert sensor2.tail.file is "/var/log/temperature"
+          cassert sensor2?
 
     describe 'LogWatcher', ->
 
-
       describe '#attributes', ->  
 
-        it 'should have the attribute', ->
+        it 'sensor 1 should have the attribute', ->
           prop = sensor.attributes.someProp
           cassert prop?
           cassert Array.isArray prop.type
@@ -85,25 +114,50 @@ module.exports = (env) ->
         it "should have the getter function", ->
           cassert typeof sensor.getSomeProp is "function"
 
+        it 'sensor 2 should have the attribute', ->
+          prop = sensor2.attributes.temperature
+          cassert prop?
+          cassert prop.type is Number
+
       describe '#getSomeProp()', ->
 
-        it 'should return unknown', (finish) ->
+        it 'sensor 1 should return unknown', (finish) ->
           sensor.getSomeProp().then( (value) ->
             assert.equal value, 'unknown'
             finish()
           ).catch(finish).done()
 
-        it 'should react to log: test 1', (finish) ->
-          tailDummy.emit 'line', 'test 1'
+        it 'sensor 1 should react to log: test 1', (finish) ->
+          sensor.tail.emit 'line', 'test 1'
           sensor.getSomeProp().then( (value) ->
             assert.equal value, '1'
             finish()
           ).catch(finish).done()
 
-        it 'should react to log: test 2', (finish) ->
-          tailDummy.emit 'line', 'test 2'
+        it 'sensor 1 should react to log: test 2', (finish) ->
+          sensor.tail.emit 'line', 'test 2'
           sensor.getSomeProp().then( (value) ->
             assert.equal value, '2'
+            finish()
+          ).catch(finish).done()
+
+        it 'sensor 2 should return 0', (finish) ->
+          sensor2.getTemperature().then( (value) ->
+            assert.equal value, 0
+            finish()
+          ).catch(finish).done()
+
+        it 'sensor 2 should react to log: temperature: 10.0', (finish) ->
+          sensor2.tail.emit 'line', 'temperature: 10.0'
+          sensor2.getTemperature().then( (value) ->
+            assert.equal value, 10.0
+            finish()
+          ).catch(finish).done()
+
+        it 'sensor 2 should react to log: temperature: 12.1', (finish) ->
+          sensor2.tail.emit 'line', 'temperature: 12.1'
+          sensor2.getTemperature().then( (value) ->
+            assert.equal value, '12.1'
             finish()
           ).catch(finish).done()
 
@@ -130,6 +184,6 @@ module.exports = (env) ->
           provider.notifyWhen 't1', 'test predicate 1', ->
             finish()
           
-          tailDummy.emit 'line', 'test 1'
+          sensor.tail.emit 'line', 'test 1'
 
 

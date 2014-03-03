@@ -42,40 +42,73 @@ module.exports = (env) ->
 
       @attributes = {}
       # initialise all attributes
-      for name in @config.attributes
-        do (name) =>
-          # that the value to 'unknown'
-          @attributeValue[name] = 'unknown'
-          # Get all possible values
-          possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
-          # Add attribute definition
-          @attributes[name] =
-            description: "attribute #{name}"
-            type: possibleValues
+      for attr, i in @config.attributes
+        do (attr) =>
+          # legazy support
+          if typeof attr is "string"
+            attr = {
+              name: attr
+              type: "string"
+            }
+            @config.attributes[i] = attr
+
+          name = attr.name
+          assert attr.name?
+          assert attr.type?
+          switch attr.type
+            when "string"
+              # that the value to 'unknown'
+              @attributeValue[name] = 'unknown'
+              # Get all possible values
+              possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
+              # Add attribute definition
+              @attributes[name] =
+                description: name
+                type: possibleValues
+            when "number"
+              @attributeValue[name] = 0
+              @attributes[name] =
+                description: name
+                type: Number
+              if attr.unit? then @attributes[name].unit = attr.unit
+            else
+              throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")
           # Create a getter for this attribute
           getter = 'get' + name[0].toUpperCase() + name.slice(1)
           @[getter] = () => Q @attributeValue[name]
+
 
       # On ervery new line in the log file
       @tail.on 'line', (data) =>
         # check all lines in config
         for line in @config.lines
           # for a match.
-          if data.match(new RegExp line.match)
+          matches = new RegExp(line.match).exec(data)
+          if matches?
             # If a match occures then emit a "match"-event.
-            @emit 'match', line, data
+            @emit 'match', line, data, matches
         return
 
       # When a match event occures
-      @on 'match', (line, data) =>
+      @on 'match', (line, data, matches) =>
         # then check for each prop in the config
-        for prop in @config.attributes
-          # if the prop is registed for the log line.
-          if prop of line
-            # When a value for the prop is define, then set the value
+        for attr in @config.attributes
+          # if the attr is registed for the log line.
+          if attr.name of line
+            # When a value for the attr is defined, then set the value
             # and emit the event.
-            @attributeValue[prop] = line[prop]
-            @emit prop, line[prop]
+            valueToSet = line[attr.name]
+            value = null
+            matchesRegexValue = valueToSet.match(/\$(\d+)/)
+            if matchesRegexValue?
+              value = matches[parseInt(matchesRegexValue[1], 10)]
+            else 
+              value = line[attr.name]
+
+            if attr.type is "number" then value = parseFloat(value)
+
+            @attributeValue[attr.name] = value 
+            @emit attr.name, value
         return
       super()
 

@@ -97,3 +97,33 @@ Define the following sensor:
 and define the rule:
 
     if new print job then turn printer on
+
+### Gather temperature values from a log file:
+
+If the log file looks like this:
+
+    temperature: 21.1
+    temperature: 22.2
+
+You can create a TemperatureSensor for this with:
+
+    {
+      "id": "temperature-from-logfile",
+      "name": "Temperature",
+      "class": "LogWatcher",
+      "file": "/var/log/temperature",
+      "attributes": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "unit": "°C"
+        }
+      ],
+      "lines": [
+        {
+          "match": "temperature: (.+)"
+          "temperature": "$1"
+        }
+      ]
+    }
+

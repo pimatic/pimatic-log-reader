@@ -121,7 +121,7 @@ You can create a TemperatureSensor for this with:
       ],
       "lines": [
         {
-          "match": "temperature: (.+)"
+          "match": "temperature: (.+)",
           "temperature": "$1"
         }
       ]

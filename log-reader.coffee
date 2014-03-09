@@ -143,11 +143,15 @@ module.exports = (env) ->
   class LogWatcherPredicateHandler extends env.predicates.PredicateHandler
 
     constructor: (@provider, @device, @line) ->
+
+    setup: ->
       @deviceListener = (line, data) => if line.match is @line.match then @emit('change', 'event')
       @device.addListener 'match', @deviceListener
-
+      super()
     getValue: -> Q(false)
-    destroy: -> @device.removeListener 'match', @deviceListener
+    destroy: -> 
+      @device.removeListener 'match', @deviceListener
+      super()
     getType: -> 'event'
 
   # For testing...

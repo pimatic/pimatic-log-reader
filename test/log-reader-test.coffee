@@ -194,6 +194,7 @@ module.exports = (env) ->
 
             predHandler = result.predicateHandler
             cassert predHandler?
+            predHandler.setup()
 
             predHandler.once 'change', ->
               finish()

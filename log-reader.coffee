@@ -126,18 +126,18 @@ module.exports = (env) ->
             return {
               token: info.token
               nextInput: input.substring(info.token.length)
-              predicateHandler: new LogWatcherPredicateHandler(this, device, info.line)
+              predicateHandler: new LogWatcherPredicateHandler(this, d, info.line)
             }
       return null
 
     _getLineWithPredicate: (config, input, context) ->
       for line in config.lines
-        if line.input? 
-          M(input, context).match(line.input)
+        if line.predicate? 
+          m = M(input, context).match(line.predicate)
           matchCount = m.getMatchCount()
           if matchCount is 1
             match = m.getFullMatches()[0]
-            return {line, token: match, nextInput: m.inputs[0]}
+            return {line, token: match, nextInput: input.substring(match.length)}
       return null
 
   class LogWatcherPredicateHandler extends env.predicates.PredicateHandler

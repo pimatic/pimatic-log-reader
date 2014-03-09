@@ -16,10 +16,12 @@ module.exports = (env) ->
     sensor = null
     sensor2 = null
     provider = null
+    frameworkDummy = null
 
     describe 'LogReaderPlugin', ->
 
       appDummy = {}
+      
       frameworkDummy =
         ruleManager: 
           addPredicateProvider: (_provider)->
@@ -163,27 +165,39 @@ module.exports = (env) ->
 
     describe 'LogWatcherPredicateProvider', ->
 
-      describe '#canDecide()', ->
+      describe '#parsePredicate()', ->
 
         it 'should decide: test predicate 1', ->
-          result = provider.canDecide 'test predicate 1'
-          cassert result is 'event'
+          result = provider.parsePredicate 'test predicate 1'
+          cassert result?
+          cassert result.token is 'test predicate 1'
+          cassert result.nextInput is ''
 
         it 'should decide: test predicate 2', ->
-          result = provider.canDecide 'test predicate 2'
-          cassert result is 'event'
+          result = provider.parsePredicate 'test predicate 2'
+          cassert result?
+          cassert result.token is 'test predicate 2'
+          cassert result.nextInput is ''
 
         it 'should not decide: test predicate 3', ->
-          result = provider.canDecide 'test predicate 3'
-          cassert result is no
+          result = provider.parsePredicate 'test predicate 3'
+          cassert not result?
 
-      describe '#notifyWhen()', ->
+      describe 'LogWatcherPredicateHandler', -> 
 
-        it 'should notify: test predicate 1', (finish) ->
+        describe '#on "change"', ->
 
-          provider.notifyWhen 't1', 'test predicate 1', ->
-            finish()
-          
-          sensor.tail.emit 'line', 'test 1'
+          it 'should notify: test predicate 1', (finish) ->
+
+            result = provider.parsePredicate 'test predicate 1'
+            cassert result?
+
+            predHandler = result.predicateHandler
+            cassert predHandler?
+
+            predHandler.once 'change', ->
+              finish()
+            
+            sensor.tail.emit 'line', 'test 1'
 
 

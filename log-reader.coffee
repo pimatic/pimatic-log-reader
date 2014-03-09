@@ -118,55 +118,37 @@ module.exports = (env) ->
 
     constructor: (@framework) ->
 
-    isTrue: (id, predicate) ->
-      return Q false
-
-    # Removes the notification for an with `notifyWhen` registered predicate. 
-    cancelNotify: (id) ->
-      l = @listener[id]
-      if l?
-        l.destroy()
-        delete @listener[id]
-      else
-        env.logger.error "Could not find listener to cancel"
-
-    canDecide: (predicate, context) ->
-      info = @_findDevice predicate, context
-      return if info? then 'event' else no 
-
-    notifyWhen: (id, predicate, callback, context) ->
-      info = @_findDevice predicate, context
-      unless info?
-        throw new Error 'Can not decide the predicate!'
-      device = info.device
-
-      deviceListener = (line, data) =>
-        if line.match is info.line.match
-          callback 'event'
-
-      device.addListener 'match', deviceListener
-      @listener[id] =
-        destroy: () => device.removeListener 'match', deviceListener
-
-
-    _findDevice: (predicate, context) ->
+    parsePredicate: (input, context) ->
       for id, d of @framework.devices
         if d instanceof LogWatcher
-          line = @_getLineWithPredicate d.config, predicate, context
-          if line? then return {device: d, line: line}
+          info = @_getLineWithPredicate d.config, input, context
+          if info?
+            return {
+              token: info.token
+              nextInput: input.substring(info.token.length)
+              predicateHandler: new LogWatcherPredicateHandler(this, device, info.line)
+            }
       return null
 
-    _getLineWithPredicate: (config, predicate, context) ->
+    _getLineWithPredicate: (config, input, context) ->
       for line in config.lines
-        #add autocomplete:
-        
-        if line.predicate? 
-          doesMatch = no
-          M(predicate, context).match(line.predicate).onEnd( => doesMatch = yes)
-          if doesMatch
-            return line
+        if line.input? 
+          M(input, context).match(line.input)
+          matchCount = m.getMatchCount()
+          if matchCount is 1
+            match = m.getFullMatches()[0]
+            return {line, token: match, nextInput: m.inputs[0]}
       return null
 
+  class LogWatcherPredicateHandler extends env.predicates.PredicateHandler
+
+    constructor: (@provider, @device, @line) ->
+      @deviceListener = (line, data) => if line.match is @line.match then @emit('change', 'event')
+      @device.addListener 'match', @deviceListener
+
+    getValue: -> Q(false)
+    destroy: -> @device.removeListener 'match', @deviceListener
+    getType: -> 'event'
 
   # For testing...
   @LogReaderPlugin = LogReaderPlugin

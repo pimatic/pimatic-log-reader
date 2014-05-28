@@ -110,8 +110,8 @@ module.exports = (env) ->
         it 'sensor 1 should have the attribute', ->
           prop = sensor.attributes.someProp
           cassert prop?
-          cassert Array.isArray prop.type
-          assert.deepEqual prop.type, ["1", "2"]
+          cassert prop.type is String
+          assert.deepEqual prop.range, ["1", "2"]
 
         it "should have the getter function", ->
           cassert typeof sensor.getSomeProp is "function"

@@ -11,6 +11,7 @@ module.exports = (env) ->
   _ = env.require 'lodash'
   M = env.matcher
   Tail = env.Tail or require('tail').Tail
+  t = env.require('decl-api').types
 
   # ##The LogReaderPlugin
   class LogReaderPlugin extends env.plugins.Plugin
@@ -64,12 +65,13 @@ module.exports = (env) ->
               # Add attribute definition
               @attributes[name] =
                 description: name
-                type: possibleValues
+                type: t.string
+                reange: possibleValues
             when "number"
               @attributeValue[name] = 0
               @attributes[name] =
                 description: name
-                type: Number
+                type: t.number
               if attr.unit? then @attributes[name].unit = attr.unit
             else
               throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")

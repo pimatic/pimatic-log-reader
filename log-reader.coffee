@@ -19,16 +19,12 @@ module.exports = (env) ->
     init: (app, @framework, @config) ->
       @framework.ruleManager.addPredicateProvider new LogWatcherPredicateProvider(@framework)
 
-    createDevice: (config) ->
-      switch config.class
-        when 'LogWatcher'
-          assert config.name?
-          assert config.id?
-          watcher = new LogWatcher(config)
-          @framework.registerDevice watcher
-          return true
-        else
-          return false
+      deviceConfigDef = require("./device-config-schema")
+
+      @framework.registerDeviceClass("LogWatcher", {
+        configDef: deviceConfigDef.LogWatcher, 
+        createCallback: (config) => return new LogWatcher(config)
+      })
 
   plugin = new LogReaderPlugin
 

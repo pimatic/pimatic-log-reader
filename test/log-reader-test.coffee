@@ -1,7 +1,7 @@
 module.exports = (env) ->
 
+  sinon = env.require 'sinon'
   cassert = env.require "cassert"
-
   assert = require 'assert'
 
   describe "pimatic-log-reader", ->
@@ -19,34 +19,26 @@ module.exports = (env) ->
     frameworkDummy = null
 
     describe 'LogReaderPlugin', ->
-
       appDummy = {}
-      
       frameworkDummy =
         ruleManager: 
-          addPredicateProvider: (_provider)->
-            provider = _provider
+          addPredicateProvider: sinon.spy()
         devices: {}
+        registerDeviceClass: sinon.spy()
 
       describe '#init()', ->
-
         it 'should accept minimal config', ->
           config = 
             plugin: 'log-reader'
           plugin.init(appDummy, frameworkDummy, config)
+          assert frameworkDummy.registerDeviceClass.calledOnce
+          firstCall = frameworkDummy.registerDeviceClass.getCall(0)
+          assert firstCall.args[0] is "LogWatcher"
 
-
-      describe '#createSensor()', ->
-
-        it 'should create a state sensor', ->
-
-          frameworkDummy.registerDevice = (s) ->
-            cassert s?
-            cassert s.id?
-            cassert s.name?
-            frameworkDummy.devices["test-sensor"] = sensor = s
-
-          sensorConfig =
+      describe '#createCallback()', ->
+        it 'should create a LogWatcher with string attribute', ->
+          firstCall = frameworkDummy.registerDeviceClass.getCall(0)
+          sensorConfig = {
             id: "test-sensor"
             name: "a test sensor"
             class: "LogWatcher"
@@ -64,23 +56,15 @@ module.exports = (env) ->
                 "someProp": "2"
               }
             ]
+          }
+          device = firstCall.args[1].createCallback(sensorConfig)
+          assert device
+          cassert device.tail.file is "/var/log/test"
+          frameworkDummy.devices["test-sensor"] = device
 
-          res = plugin.createDevice sensorConfig
-          cassert res is true
-          cassert sensor.tail.file is "/var/log/test"
-          cassert sensor?
-
-        it 'should create a numeric sensor', ->
-
-          frameworkDummy.registerDevice = (s) ->
-            cassert s?
-            cassert s.id?
-            cassert s.name?
-            cassert s.attributes.temperature?
-            cassert s.attributes.temperature.type is Number
-            frameworkDummy.devices["numeric-test-sensor"] = sensor2 = s
-
-          sensorConfig =
+        it 'should create a nLogWatcher  with number attribute', ->
+          firstCall = frameworkDummy.registerDeviceClass.getCall(0)
+          sensorConfig = {
             id: "numeric-test-sensor"
             name: "a temperature test sensor"
             class: "LogWatcher"
@@ -97,29 +81,30 @@ module.exports = (env) ->
                 temperature: "$1"
               }
             ]
-
-          res = plugin.createDevice sensorConfig
-          cassert res is true
-          cassert sensor2.tail.file is "/var/log/temperature"
-          cassert sensor2?
+          }
+          device = firstCall.args[1].createCallback(sensorConfig)
+          assert device
+          cassert device.tail.file is "/var/log/temperature"
+          frameworkDummy.devices["numeric-test-sensor"] = device
 
     describe 'LogWatcher', ->
-
       describe '#attributes', ->  
-
         it 'sensor 1 should have the attribute', ->
+          sensor = frameworkDummy.devices["test-sensor"]
           prop = sensor.attributes.someProp
           cassert prop?
-          cassert prop.type is String
-          assert.deepEqual prop.range, ["1", "2"]
+          cassert prop.type is "string"
+          assert.deepEqual prop.oneOf, ["1", "2"]
 
         it "should have the getter function", ->
+          sensor = frameworkDummy.devices["test-sensor"]
           cassert typeof sensor.getSomeProp is "function"
 
         it 'sensor 2 should have the attribute', ->
+          sensor2 = frameworkDummy.devices["numeric-test-sensor"]
           prop = sensor2.attributes.temperature
           cassert prop?
-          cassert prop.type is Number
+          cassert prop.type is "number"
 
       describe '#getSomeProp()', ->
 
@@ -164,41 +149,34 @@ module.exports = (env) ->
           ).catch(finish).done()
 
     describe 'LogWatcherPredicateProvider', ->
-
       describe '#parsePredicate()', ->
-
         it 'should decide: test predicate 1', ->
+          provider = frameworkDummy.ruleManager.addPredicateProvider.getCall(0).args[0]
           result = provider.parsePredicate 'test predicate 1'
           cassert result?
           cassert result.token is 'test predicate 1'
           cassert result.nextInput is ''
 
         it 'should decide: test predicate 2', ->
+          provider = frameworkDummy.ruleManager.addPredicateProvider.getCall(0).args[0]
           result = provider.parsePredicate 'test predicate 2'
           cassert result?
           cassert result.token is 'test predicate 2'
           cassert result.nextInput is ''
 
         it 'should not decide: test predicate 3', ->
+          provider = frameworkDummy.ruleManager.addPredicateProvider.getCall(0).args[0]
           result = provider.parsePredicate 'test predicate 3'
           cassert not result?
 
       describe 'LogWatcherPredicateHandler', -> 
-
         describe '#on "change"', ->
-
           it 'should notify: test predicate 1', (finish) ->
-
+            provider = frameworkDummy.ruleManager.addPredicateProvider.getCall(0).args[0]
             result = provider.parsePredicate 'test predicate 1'
             cassert result?
-
             predHandler = result.predicateHandler
             cassert predHandler?
             predHandler.setup()
-
-            predHandler.once 'change', ->
-              finish()
-            
+            predHandler.once 'change', -> finish()
             sensor.tail.emit 'line', 'test 1'
-
-

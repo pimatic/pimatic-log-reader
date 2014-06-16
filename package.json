@@ -4,6 +4,7 @@
   "main": "log-reader.coffee",
   "files": [
     "log-reader.coffee",
+    "device-config-schema.coffee",
     "README.md"
   ],
   "version": "0.8.0",

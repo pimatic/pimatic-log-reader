@@ -94,7 +94,7 @@ module.exports = (env) ->
           prop = sensor.attributes.someProp
           cassert prop?
           cassert prop.type is "string"
-          assert.deepEqual prop.oneOf, ["1", "2"]
+          assert.deepEqual prop.enum, ["1", "2"]
 
         it "should have the getter function", ->
           sensor = frameworkDummy.devices["test-sensor"]

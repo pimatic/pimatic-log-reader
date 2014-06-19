@@ -62,7 +62,7 @@ module.exports = (env) ->
               @attributes[name] =
                 description: name
                 type: t.string
-                oneOf: possibleValues
+                enum: possibleValues
             when "number"
               @attributeValue[name] = 0
               @attributes[name] =

@@ -5,6 +5,7 @@
   "files": [
     "log-reader.coffee",
     "device-config-schema.coffee",
+    "log-reader-config-schema.coffee",
     "README.md"
   ],
   "version": "0.8.0",
@@ -13,6 +14,7 @@
     "type": "git",
     "url": "git://github.com/pimatic/pimatic-log-reader.git"
   },
+  "configSchema": "log-reader-config-schema.coffee",
   "dependencies": {
     "tail": "~0.3.1"
   },

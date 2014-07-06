@@ -5,7 +5,7 @@ module.exports = (env) ->
   util = require 'util'
   
   # * pimatic imports.
-  Q = env.require 'q'
+  Promise = env.require 'bluebird'
   assert = env.require 'cassert'
   _ = env.require 'lodash'
   M = env.matcher
@@ -72,7 +72,7 @@ module.exports = (env) ->
               throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")
           # Create a getter for this attribute
           getter = 'get' + name[0].toUpperCase() + name.slice(1)
-          @[getter] = () => Q @attributeValue[name]
+          @[getter] = () => Promise.resolve @attributeValue[name]
 
 
       # On ervery new line in the log file
@@ -144,7 +144,7 @@ module.exports = (env) ->
       @deviceListener = (line, data) => if line.match is @line.match then @emit('change', 'event')
       @device.addListener 'match', @deviceListener
       super()
-    getValue: -> Q(false)
+    getValue: -> Promise.resolve(false)
     destroy: -> 
       @device.removeListener 'match', @deviceListener
       super()

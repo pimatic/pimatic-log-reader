@@ -71,8 +71,7 @@ module.exports = (env) ->
             else
               throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")
           # Create a getter for this attribute
-          getter = 'get' + name[0].toUpperCase() + name.slice(1)
-          @[getter] = () => Promise.resolve @attributeValue[name]
+          @_createGetter name, ( => Promise.resolve @attributeValue[name] )
 
 
       # On ervery new line in the log file

@@ -20,7 +20,7 @@ module.exports = (env) ->
 
       deviceConfigDef = require("./device-config-schema")
 
-      @framework.registerDeviceClass("LogWatcher", {
+      @framework.deviceManager.registerDeviceClass("LogWatcher", {
         configDef: deviceConfigDef.LogWatcher, 
         createCallback: (config) => return new LogWatcher(config)
       })
@@ -115,7 +115,7 @@ module.exports = (env) ->
     constructor: (@framework) ->
 
     parsePredicate: (input, context) ->
-      for id, d of @framework.devices
+      for id, d of @framework.deviceManager.devices
         if d instanceof LogWatcher
           info = @_getLineWithPredicate d.config, input, context
           if info?

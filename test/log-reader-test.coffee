@@ -2,6 +2,7 @@ module.exports = (env) ->
 
   sinon = env.require 'sinon'
   cassert = env.require "cassert"
+  _ = env.require 'lodash'
   assert = require 'assert'
 
   describe "pimatic-log-reader", ->
@@ -23,21 +24,23 @@ module.exports = (env) ->
       frameworkDummy =
         ruleManager: 
           addPredicateProvider: sinon.spy()
-        devices: {}
-        registerDeviceClass: sinon.spy()
+        deviceManager:
+          devices: {}
+          registerDeviceClass: sinon.spy()
+          getDevices: -> _.values(@devices)
 
       describe '#init()', ->
         it 'should accept minimal config', ->
           config = 
             plugin: 'log-reader'
           plugin.init(appDummy, frameworkDummy, config)
-          assert frameworkDummy.registerDeviceClass.calledOnce
-          firstCall = frameworkDummy.registerDeviceClass.getCall(0)
+          assert frameworkDummy.deviceManager.registerDeviceClass.calledOnce
+          firstCall = frameworkDummy.deviceManager.registerDeviceClass.getCall(0)
           assert firstCall.args[0] is "LogWatcher"
 
       describe '#createCallback()', ->
         it 'should create a LogWatcher with string attribute', ->
-          firstCall = frameworkDummy.registerDeviceClass.getCall(0)
+          firstCall = frameworkDummy.deviceManager.registerDeviceClass.getCall(0)
           sensorConfig = {
             id: "test-sensor"
             name: "a test sensor"
@@ -60,10 +63,10 @@ module.exports = (env) ->
           device = firstCall.args[1].createCallback(sensorConfig)
           assert device
           cassert device.tail.file is "/var/log/test"
-          frameworkDummy.devices["test-sensor"] = device
+          frameworkDummy.deviceManager.devices["test-sensor"] = device
 
         it 'should create a nLogWatcher  with number attribute', ->
-          firstCall = frameworkDummy.registerDeviceClass.getCall(0)
+          firstCall = frameworkDummy.deviceManager.registerDeviceClass.getCall(0)
           sensorConfig = {
             id: "numeric-test-sensor"
             name: "a temperature test sensor"
@@ -85,23 +88,23 @@ module.exports = (env) ->
           device = firstCall.args[1].createCallback(sensorConfig)
           assert device
           cassert device.tail.file is "/var/log/temperature"
-          frameworkDummy.devices["numeric-test-sensor"] = device
+          frameworkDummy.deviceManager.devices["numeric-test-sensor"] = device
 
     describe 'LogWatcher', ->
       describe '#attributes', ->  
         it 'sensor 1 should have the attribute', ->
-          sensor = frameworkDummy.devices["test-sensor"]
+          sensor = frameworkDummy.deviceManager.devices["test-sensor"]
           prop = sensor.attributes.someProp
           cassert prop?
           cassert prop.type is "string"
           assert.deepEqual prop.enum, ["1", "2"]
 
         it "should have the getter function", ->
-          sensor = frameworkDummy.devices["test-sensor"]
+          sensor = frameworkDummy.deviceManager.devices["test-sensor"]
           cassert typeof sensor.getSomeProp is "function"
 
         it 'sensor 2 should have the attribute', ->
-          sensor2 = frameworkDummy.devices["numeric-test-sensor"]
+          sensor2 = frameworkDummy.deviceManager.devices["numeric-test-sensor"]
           prop = sensor2.attributes.temperature
           cassert prop?
           cassert prop.type is "number"

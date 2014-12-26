@@ -11,6 +11,7 @@ module.exports = (env) ->
   M = env.matcher
   Tail = env.Tail or require('tail').Tail
   t = env.require('decl-api').types
+  LineByLineReader = require("line-by-line")
 
   # ##The LogReaderPlugin
   class LogReaderPlugin extends env.plugins.Plugin
@@ -33,7 +34,6 @@ module.exports = (env) ->
     constructor: (@config) ->
       @id = config.id
       @name = config.name
-      @tail = new Tail(config.file)
       @attributeValue = {}
 
       @attributes = {}
@@ -74,8 +74,7 @@ module.exports = (env) ->
           @_createGetter name, ( => Promise.resolve @attributeValue[name] )
 
 
-      # On ervery new line in the log file
-      @tail.on 'line', (data) =>
+      onLine = (data) =>
         # check all lines in config
         for line in @config.lines
           # for a match.
@@ -85,8 +84,8 @@ module.exports = (env) ->
             @emit 'match', line, data, matches
         return
 
-      # When a match event occures
-      @on 'match', (line, data, matches) =>
+      emitValue = no
+      onMatch = (line, data, matches) =>
         # then check for each prop in the config
         for attr in @config.attributes
           # if the attr is registed for the log line.
@@ -104,8 +103,24 @@ module.exports = (env) ->
             if attr.type is "number" then value = parseFloat(value)
 
             @attributeValue[attr.name] = value 
-            @emit attr.name, value
+            @emit(attr.name, value) if emitValue
         return
+
+      # When a match event occures
+      @on 'match', onMatch
+
+      # read the file to get initial values:
+      lr = new LineByLineReader(config.file)
+      lr.on "error", (err) -> 
+        env.logger.error err.message
+        env.logger.debug err.stack
+      lr.on "line", onLine
+      lr.on "end", ->
+        emitValue = yes
+        # If we have read the full file then tail the file
+        @tail = new Tail(config.file)
+        # On ervery new line in the log file
+        @tail.on 'line', onLine
       super()
 
 

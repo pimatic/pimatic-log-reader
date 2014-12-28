@@ -84,7 +84,7 @@ module.exports = (env) ->
             @emit 'match', line, data, matches
         return
 
-      emitValue = no
+      @_tailing = no
       onMatch = (line, data, matches) =>
         # then check for each prop in the config
         for attr in @config.attributes
@@ -103,7 +103,7 @@ module.exports = (env) ->
             if attr.type is "number" then value = parseFloat(value)
 
             @attributeValue[attr.name] = value 
-            @emit(attr.name, value) if emitValue
+            @emit(attr.name, value) if @_tailing
         return
 
       # When a match event occures
@@ -115,8 +115,8 @@ module.exports = (env) ->
         env.logger.error err.message
         env.logger.debug err.stack
       lr.on "line", onLine
-      lr.on "end", ->
-        emitValue = yes
+      lr.on "end", =>
+        @_tailing = yes
         # If we have read the full file then tail the file
         @tail = new Tail(config.file)
         # On ervery new line in the log file
@@ -155,7 +155,8 @@ module.exports = (env) ->
     constructor: (@provider, @device, @line) ->
 
     setup: ->
-      @deviceListener = (line, data) => if line.match is @line.match then @emit('change', 'event')
+      @deviceListener = (line, data) => 
+        if @device._tailing and line.match is @line.match then @emit('change', 'event')
       @device.addListener 'match', @deviceListener
       super()
     getValue: -> Promise.resolve(false)

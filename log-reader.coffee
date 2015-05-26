@@ -68,6 +68,12 @@ module.exports = (env) ->
                 description: name
                 type: t.number
               if attr.unit? then @attributes[name].unit = attr.unit
+              
+            when "boolean"
+              @attributeValue[name] = false
+              @attributes[name] =
+                description: name
+                type: t.boolean
             else
               throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")
           # Create a getter for this attribute
@@ -88,19 +94,23 @@ module.exports = (env) ->
       onMatch = (line, data, matches) =>
         # then check for each prop in the config
         for attr in @config.attributes
-          # if the attr is registed for the log line.
+          # if the attr is registered for the log line.
           if attr.name of line
             # When a value for the attr is defined, then set the value
             # and emit the event.
             valueToSet = line[attr.name]
             value = null
-            matchesRegexValue = valueToSet.match(/\$(\d+)/)
-            if matchesRegexValue?
-              value = matches[parseInt(matchesRegexValue[1], 10)]
-            else 
+            
+            if attr.type is "boolean" 
               value = line[attr.name]
+            else
+              matchesRegexValue = valueToSet.match(/\$(\d+)/)
+              if matchesRegexValue?
+                value = matches[parseInt(matchesRegexValue[1], 10)]
+              else 
+                value = line[attr.name]
 
-            if attr.type is "number" then value = parseFloat(value)
+              if attr.type is "number" then value = parseFloat(value)
 
             @attributeValue[attr.name] = value 
             @emit(attr.name, value) if @_tailing

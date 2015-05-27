@@ -90,6 +90,37 @@ module.exports = (env) ->
           cassert device.tail.file is "/var/log/temperature"
           frameworkDummy.deviceManager.devices["numeric-test-sensor"] = device
 
+        it 'should create a LogWatcher with boolean attribute', ->
+          firstCall = frameworkDummy.deviceManager.registerDeviceClass.getCall(0)
+          sensorConfig = {
+            id: "test-sensor2"
+            name: "a test sensor2"
+            class: "LogWatcher"
+            file: "/var/log/test2"
+            attributes: [
+              {
+                name: "someProp"
+                type: "boolean"
+              }
+            ]
+            lines: [
+              {
+                match: "test 1"
+                predicate: "test predicate 1"
+                "someProp": true
+              }
+              {
+                match: "test 2"
+                predicate: "test predicate 2"
+                "someProp": false
+              }
+            ]
+          }
+          device = firstCall.args[1].createCallback(sensorConfig)
+          assert device
+          cassert device.tail.file is "/var/log/test2"
+          frameworkDummy.deviceManager.devices["test-sensor2"] = device
+          
     describe 'LogWatcher', ->
       describe '#attributes', ->  
         it 'sensor 1 should have the attribute', ->
@@ -109,6 +140,11 @@ module.exports = (env) ->
           cassert prop?
           cassert prop.type is "number"
 
+        it 'sensor 3 should have the attribute', ->
+          sensor2 = frameworkDummy.deviceManager.devices["numeric-test-sensor"]
+          prop = sensor2.attributes.temperature
+          cassert prop?
+          cassert prop.type is "boolean"
       describe '#getSomeProp()', ->
 
         it 'sensor 1 should return unknown', (finish) ->
@@ -148,6 +184,13 @@ module.exports = (env) ->
           sensor2.tail.emit 'line', 'temperature: 12.1'
           sensor2.getTemperature().then( (value) ->
             assert.equal value, '12.1'
+            finish()
+          ).catch(finish).done()
+          
+        it 'sensor 2 should react to log: test 1', (finish) ->
+          sensor.tail.emit 'line', 'test 1'
+          sensor.getSomeProp().then( (value) ->
+            assert.equal value, true
             finish()
           ).catch(finish).done()
 

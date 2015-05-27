@@ -127,3 +127,34 @@ You can create a TemperatureSensor for this with:
       ]
     }
 
+### Get a Switchstate from a logfile:
+
+If the log file looks like this:
+
+    Switch1: On
+    Switch1: Off
+
+You can create a SwitchSensor for this with:
+
+    {
+      "id": "switchstate-from-logfile",
+      "name": "Switch",
+      "class": "LogWatcher",
+      "file": "/var/log/switch",
+      "attributes": [
+        {
+          "name": "Switch1",
+          "type": "boolean"
+        }
+      ],
+      "lines": [
+        {
+          "match": "Switch1: On",
+          "Switch1": true
+        },
+        {
+          "match": "Switch1: Off",
+          "Switch1": false
+        }
+      ]
+    }

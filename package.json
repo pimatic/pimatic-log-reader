@@ -9,7 +9,7 @@
     "log-reader-config-schema.coffee",
     "README.md"
   ],
-  "version": "0.8.4",
+  "version": "0.8.5",
   "homepage": "http://github.com/pimatic/pimatic",
   "repository": {
     "type": "git",

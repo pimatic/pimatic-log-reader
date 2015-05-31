@@ -76,6 +76,8 @@ module.exports = (env) ->
                 type: t.boolean
             else
               throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")
+          if _.isArray attr.labels
+            @attributes[name].labels = attr.labels
           # Create a getter for this attribute
           @_createGetter name, ( => Promise.resolve @attributeValue[name] )
 

@@ -3,6 +3,7 @@ module.exports = {
   LogWatcher: {
     title: "LogWatcher config options"
     type: "object"
+    extensions: ["xAttributeOptions"]
     properties:
       file:
         description: "The file to watch"

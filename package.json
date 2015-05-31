@@ -9,7 +9,7 @@
     "log-reader-config-schema.coffee",
     "README.md"
   ],
-  "version": "0.8.2",
+  "version": "0.8.5",
   "homepage": "http://github.com/pimatic/pimatic",
   "repository": {
     "type": "git",
@@ -26,5 +26,11 @@
   "engines": {
     "node": ">0.8.x",
     "npm": ">1.1.x"
-  }
+  },
+  "contributors": [
+    {
+      "name": "Marcus Wittig",
+      "url": "https://github.com/mwittig"
+    }
+  ]
 }

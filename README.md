@@ -158,3 +158,30 @@ You can create a SwitchSensor for this with:
         }
       ]
     }
+    
+    {
+      "id": "switchstate-from-logfile",
+      "name": "Switch",
+      "class": "LogWatcher",
+      "file": "/var/log/switch",
+      "attributes": [
+        {
+          "name": "Switch1",
+          "type": "boolean"
+          "labels": [
+            "Ist eingeschaltet",
+            "Ist ausgeschaltet"
+          ]
+        }
+      ],
+      "lines": [
+        {
+          "match": "Switch1: On",
+          "Switch1": true
+        },
+        {
+          "match": "Switch1: Off",
+          "Switch1": false
+        }
+      ]
+    }

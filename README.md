@@ -169,8 +169,8 @@ You can create a SwitchSensor for this with:
           "name": "Switch1",
           "type": "boolean"
           "labels": [
-            "Ist eingeschaltet",
-            "Ist ausgeschaltet"
+            "Is switched on",
+            "Is switched off"
           ]
         }
       ],

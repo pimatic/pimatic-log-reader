@@ -23,7 +23,7 @@ module.exports = (env) ->
 
       @framework.deviceManager.registerDeviceClass("LogWatcher", {
         configDef: deviceConfigDef.LogWatcher, 
-        createCallback: (config) => return new LogWatcher(config)
+        createCallback: (config, lastState) => return new LogWatcher(config, lastState)
       })
 
   plugin = new LogReaderPlugin
@@ -31,10 +31,11 @@ module.exports = (env) ->
     # ##LogWatcher Sensor
   class LogWatcher extends env.devices.Sensor
 
-    constructor: (@config) ->
+    constructor: (@config, lastState) ->
       @id = config.id
       @name = config.name
       @attributeValue = {}
+      @changedAttributeValue = {}
 
       @attributes = {}
       # initialise all attributes
@@ -51,10 +52,15 @@ module.exports = (env) ->
           name = attr.name
           assert attr.name?
           assert attr.type?
+
+          lastValue = lastState?[name]?.value
+          unless typeof lastValue is attr.type
+            lastValue = null
+
           switch attr.type
             when "string"
               # that the value to 'unknown'
-              @attributeValue[name] = 'unknown'
+              @attributeValue[name] = lastValue
               # Get all possible values
               possibleValues = _.map(_.filter(@config.lines, (l) => l[name]?), (l) => l[name])
               # Add attribute definition
@@ -63,14 +69,14 @@ module.exports = (env) ->
                 type: t.string
                 enum: possibleValues
             when "number"
-              @attributeValue[name] = 0
+              @attributeValue[name] = lastValue
               @attributes[name] =
                 description: name
                 type: t.number
               if attr.unit? then @attributes[name].unit = attr.unit
               
             when "boolean"
-              @attributeValue[name] = false
+              @attributeValue[name] = lastValue
               @attributes[name] =
                 description: name
                 type: t.boolean
@@ -114,8 +120,13 @@ module.exports = (env) ->
 
               if attr.type is "number" then value = parseFloat(value)
 
-            @attributeValue[attr.name] = value 
-            @emit(attr.name, value) if @_tailing
+            if @_tailing
+              @attributeValue[attr.name] = value
+              @emit(attr.name, value)
+            else
+              if @attributeValue[attr.name] isnt value
+                @attributeValue[attr.name] = value
+                @changedAttributeValue[attr.name] = value
         return
 
       # When a match event occures
@@ -129,6 +140,9 @@ module.exports = (env) ->
       lr.on "line", onLine
       lr.on "end", =>
         @_tailing = yes
+        for attrName, value of @changedAttributeValue
+          @emit(attrName, value)
+        @changedAttributeValue = {}
         # If we have read the full file then tail the file
         @tail = new Tail(config.file)
         # On ervery new line in the log file

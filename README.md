@@ -4,7 +4,7 @@ pimatic log-reader plugin
 The log-reader let you define sensors based on log entries in log files of other programs.
 So you can trigger rules besed on log entries. See the example-Section for more details.
 
-Configutation:
+Configuration:
 --------------
 
 Add the plugin to to plugins-Array in the config.json file:
@@ -43,7 +43,7 @@ Then you can use the predicates defined in your config.
 Examples:
 ---------
 
-###turn a speacker on and off when a music player starts or stops playing:
+### Turn a speaker on and off when a music player starts or stops playing:
 
 Assuming that you are using [gmediarender](https://github.com/hzeller/gmrender-resurrect) and the 
 log is written to "/var/log/gmediarender". Then define following sensor:
@@ -72,11 +72,11 @@ log is written to "/var/log/gmediarender". Then define following sensor:
 
 and add the following rules for a existing speaker actuator:
 
-    if music starts then turn the speacker on
+    if music starts then turn the speaker on
 
-    if music stops then turn the speacker off
+    if music stops then turn the speaker off
 
-###turn the printer on when you start printing:
+### Turn the printer on when you start printing:
 
 Define the following sensor:
 
@@ -127,7 +127,7 @@ You can create a TemperatureSensor for this with:
       ]
     }
 
-### Get a Switchstate from a logfile:
+### Get a switch state from a logfile:
 
 If the log file looks like this:
 
@@ -145,6 +145,33 @@ You can create a SwitchSensor for this with:
         {
           "name": "Switch1",
           "type": "boolean"
+        }
+      ],
+      "lines": [
+        {
+          "match": "Switch1: On",
+          "Switch1": true
+        },
+        {
+          "match": "Switch1: Off",
+          "Switch1": false
+        }
+      ]
+    }
+    
+    {
+      "id": "switchstate-from-logfile",
+      "name": "Switch",
+      "class": "LogWatcher",
+      "file": "/var/log/switch",
+      "attributes": [
+        {
+          "name": "Switch1",
+          "type": "boolean"
+          "labels": [
+            "Is switched on",
+            "Is switched off"
+          ]
         }
       ],
       "lines": [

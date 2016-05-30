@@ -32,11 +32,11 @@ module.exports = (env) ->
   class LogWatcher extends env.devices.Sensor
 
     constructor: (@config, lastState) ->
-      @id = config.id
-      @name = config.name
+      @id = @config.id
+      @name = @config.name
       
-      if config.template != ""
-        @template = config.template
+      if @config.template != ""
+        @template = @config.template
         
       @attributeValue = {}
       @changedAttributeValue = {}
@@ -137,7 +137,7 @@ module.exports = (env) ->
       @on 'match', onMatch
 
       # read the file to get initial values:
-      lr = new LineByLineReader(config.file)
+      lr = new LineByLineReader(@config.file)
       lr.on "error", (err) -> 
         env.logger.error err.message
         env.logger.debug err.stack
@@ -148,7 +148,7 @@ module.exports = (env) ->
           @emit(attrName, value)
         @changedAttributeValue = {}
         # If we have read the full file then tail the file
-        @tail = new Tail(config.file)
+        @tail = new Tail(@config.file)
         # On ervery new line in the log file
         @tail.on 'line', onLine
       super()

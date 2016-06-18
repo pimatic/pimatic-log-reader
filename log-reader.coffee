@@ -34,6 +34,10 @@ module.exports = (env) ->
     constructor: (@config, lastState) ->
       @id = @config.id
       @name = @config.name
+
+      if @config.template != ""
+        @template = @config.template
+
       @attributeValue = {}
       @changedAttributeValue = {}
 

@@ -5,6 +5,10 @@ module.exports = {
     type: "object"
     extensions: ["xAttributeOptions"]
     properties:
+      template:
+        description: "Template to use in GUI"
+        type: "string"
+        default: ""
       file:
         description: "The file to watch"
         type: "string"

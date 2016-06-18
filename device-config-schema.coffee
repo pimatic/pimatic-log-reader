@@ -8,7 +8,7 @@ module.exports = {
       template:
         description: "Template to use in GUI"
         type: "string"
-        default: ""
+        required: false
       file:
         description: "The file to watch"
         type: "string"

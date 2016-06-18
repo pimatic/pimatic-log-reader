@@ -35,7 +35,7 @@ module.exports = (env) ->
       @id = @config.id
       @name = @config.name
 
-      if @config.template != ""
+      if @config.template?
         @template = @config.template
 
       @attributeValue = {}

@@ -3,7 +3,7 @@ module.exports = {
   LogWatcher: {
     title: "LogWatcher config options"
     type: "object"
-    extensions: ["xAttributeOptions"]
+    extensions: ["xAttributeOptions", "xLink"]
     properties:
       template:
         description: "Template to use in GUI"

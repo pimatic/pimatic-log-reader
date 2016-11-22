@@ -2,7 +2,7 @@ pimatic log-reader plugin
 =========================
 
 The log-reader let you define sensors based on log entries in log files of other programs.
-So you can trigger rules besed on log entries. See the example-Section for more details.
+So you can trigger rules based on log entries. See the example-Section for more details.
 
 Configuration:
 --------------
@@ -70,11 +70,11 @@ log is written to "/var/log/gmediarender". Then define following sensor:
       ]
     }
 
-and add the following rules for a existing speaker actuator:
+and add the following rules for an existing speaker actuator:
 
-    if music starts then turn the speaker on
+    when music starts then turn the speaker on
 
-    if music stops then turn the speaker off
+    when music stops then turn the speaker off
 
 ### Turn the printer on when you start printing:
 

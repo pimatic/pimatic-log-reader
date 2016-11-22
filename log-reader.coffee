@@ -45,7 +45,7 @@ module.exports = (env) ->
       # initialise all attributes
       for attr, i in @config.attributes
         do (attr) =>
-          # legazy support
+          # legacy support
           if typeof attr is "string"
             attr = {
               name: attr
@@ -134,26 +134,31 @@ module.exports = (env) ->
                 @changedAttributeValue[attr.name] = value
         return
 
-      # When a match event occures
+      # When a match event occurs
       @on 'match', onMatch
 
       # read the file to get initial values:
-      lr = new LineByLineReader(@config.file)
-      lr.on "error", (err) -> 
+      @lr = new LineByLineReader(@config.file)
+      @lr.on "error", (err) ->
         env.logger.error err.message
         env.logger.debug err.stack
-      lr.on "line", onLine
-      lr.on "end", =>
+      @lr.on "line", onLine
+      @lr.on "end", =>
         @_tailing = yes
         for attrName, value of @changedAttributeValue
           @emit(attrName, value)
         @changedAttributeValue = {}
         # If we have read the full file then tail the file
         @tail = new Tail(@config.file)
-        # On ervery new line in the log file
+        # On every new line in the log file
         @tail.on 'line', onLine
       super()
 
+    destroy: () ->
+      @removeAllListeners 'match'
+      @lr.close() if @lr?
+      @tail.unwatch() if @tail?
+      super()
 
   class LogWatcherPredicateProvider extends env.predicates.PredicateProvider
     listener: []

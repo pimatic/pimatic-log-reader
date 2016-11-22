@@ -116,7 +116,8 @@ You can create a TemperatureSensor for this with:
         {
           "name": "temperature",
           "type": "number",
-          "unit": "°C"
+          "unit": "°C",
+          "acronym": "T"
         }
       ],
       "lines": [
@@ -144,7 +145,8 @@ You can create a SwitchSensor for this with:
       "attributes": [
         {
           "name": "Switch1",
-          "type": "boolean"
+          "type": "boolean",
+          "discrete": true
         }
       ],
       "lines": [

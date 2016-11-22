@@ -24,8 +24,23 @@ module.exports = {
             type:
               type: "string"
               enum: ["string", "number", "boolean"]
+            label:
+              description: "A custom label to use in the frontend."
+              type: "string"
+              required: false
+            discrete:
+              description: "
+                Should be set to true if the value does not change continuously over time.
+              "
+              type: "boolean"
+              required: false
             unit:
               type: "string"
+              description: "The unit of the attribute. Only works if type is a number."
+              required: no
+            acronym:
+              type: "string"
+              description: "Acronym to show as value label in the frontend"
               required: no
       lines:
         description: "Lines to match"

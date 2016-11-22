@@ -77,8 +77,7 @@ module.exports = (env) ->
               @attributes[name] =
                 description: name
                 type: t.number
-              if attr.unit? then @attributes[name].unit = attr.unit
-              
+              @attributes[name].unit = attr.unit if attr.unit?
             when "boolean"
               @attributeValue[name] = lastValue
               @attributes[name] =
@@ -86,6 +85,8 @@ module.exports = (env) ->
                 type: t.boolean
             else
               throw new Error("Illegal type: #{attr.type} for attributes #{name} in LogWatcher.")
+          for property in ['label', 'acronym', 'discrete']
+            @attributes[name][property] = attr[property] if attr[property]?
           if _.isArray attr.labels
             @attributes[name].labels = attr.labels
           # Create a getter for this attribute

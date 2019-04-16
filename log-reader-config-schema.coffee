@@ -1,5 +1,5 @@
 module.exports = {
-  title: "gpio config"
+  title: "log-reader config"
   type: "object"
   properties:
     debug:

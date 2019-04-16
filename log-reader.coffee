@@ -138,20 +138,38 @@ module.exports = (env) ->
       @on 'match', onMatch
 
       # read the file to get initial values:
-      @lr = new LineByLineReader(@config.file)
-      @lr.on "error", (err) ->
-        env.logger.error err.message
-        env.logger.debug err.stack
-      @lr.on "line", onLine
-      @lr.on "end", =>
-        @_tailing = yes
-        for attrName, value of @changedAttributeValue
-          @emit(attrName, value)
-        @changedAttributeValue = {}
-        # If we have read the full file then tail the file
-        @tail = new Tail(@config.file)
-        # On every new line in the log file
-        @tail.on 'line', onLine
+      retryTimeout = 0
+      reader = () =>
+        retryTimeout += 10000 if retryTimeout <= 60000
+
+        @lr.removeAllListeners() if @lr?
+        @lr = new LineByLineReader(@config.file)
+
+        @lr.on "error", (err) ->
+          env.logger.error err.message
+          env.logger.debug err.stack
+          setTimeout reader, retryTimeout
+
+        @lr.on "open", => retryTimeout = 0
+        @lr.on "line", onLine
+        @lr.on "end", =>
+          @_tailing = yes
+          for attrName, value of @changedAttributeValue
+            @emit(attrName, value)
+          @changedAttributeValue = {}
+          # If we have read the full file then tail the file
+          @tail = new Tail(@config.file)
+          # On every new line in the log file
+          @tail.on 'line', onLine
+          @tail.on 'error', (errMessage) =>
+            # Tail passes an error message string
+            errMessage = errMessage.replace ': undefined', ''
+            if @tail?
+              @tail.unwatch()
+              @tail.removeAllListeners()
+            @lr.emit "error", new Error(errMessage)
+
+      reader()
       super()
 
     destroy: () ->

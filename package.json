@@ -22,6 +22,10 @@
     "line-by-line": "^0.1.1",
     "tail": "1.2.3"
   },
+  "bundledDependencies": [
+    "line-by-line",
+    "tail"
+  ],
   "peerDependencies": {
     "pimatic": ">=0.9.0 <1.0.0"
   },
